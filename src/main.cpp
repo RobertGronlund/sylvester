@@ -2,10 +2,11 @@
 #include <ESP32Servo.h>
 #include <bsec.h>
 
-bool serial_enable = true;
+bool serial_enable = false;
 
 // Helper functions declarations
 void setServo(int pos);
+void servoTest(void);
 void checkIaqSensorStatus(void);
 void errLeds(void);
 
@@ -123,17 +124,23 @@ void loop() {
     delay(1000);
     return;
   }
-  
 }
 
 
 // Helper function definitions
 void setServo(int pos) {
   digitalWrite(mosfetPin, HIGH);
-  delay(10);
+  delay(1000);
   servo.write(pos);
-  delay(10);
+  delay(1000);
   digitalWrite(mosfetPin, LOW);
+}
+
+void servoTest(){
+  setServo(pos_bad);
+  delay(3000);
+  setServo(pos_good);
+  delay(3000);
 }
 
 void checkIaqSensorStatus(void)
