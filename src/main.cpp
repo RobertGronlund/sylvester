@@ -69,13 +69,12 @@ void setup()
 
     iaqSensor.updateSubscription(sensorList, 13, BSEC_SAMPLE_RATE_LP);
     checkIaqSensorStatus();
-    
+
     // Print the header
     output = "Timestamp [ms],IAQ,IAQ accuracy,Temperature [C],Pressure [hPa],Humidity [%],Gas [Ohm],";
     if (serial_enable)
         Serial.println(output);
 }
-
 
 void loop()
 {
@@ -140,7 +139,6 @@ void loop()
     }
 }
 
-
 // Helper function definitions
 void setServo(int pos)
 {
@@ -150,7 +148,6 @@ void setServo(int pos)
     delay(1000);
     digitalWrite(mosfetPin, LOW);
 }
-
 
 void checkIaqSensorStatus(void)
 {
@@ -191,7 +188,6 @@ void checkIaqSensorStatus(void)
     }
 }
 
-
 void errLeds(void)
 {
     digitalWrite(LED_BUILTIN, HIGH);
@@ -199,7 +195,6 @@ void errLeds(void)
     digitalWrite(LED_BUILTIN, LOW);
     delay(100);
 }
-
 
 // Test functions
 void servoTest()

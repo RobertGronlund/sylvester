@@ -6,3 +6,4 @@
 .vscode/ipch
 venv/
 data/
+*.3mf
