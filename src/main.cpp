@@ -2,7 +2,7 @@
 #include <ESP32Servo.h>
 #include <bsec.h>
 
-bool serial_enable = false;
+bool serial_enable {true};
 
 // Helper functions declarations
 void setServo(int pos);
@@ -12,23 +12,23 @@ void errLeds(void);
 
 // Servo setup 0
 Servo servo; // create servo object to control a servo
-int servoPin = A1;
-int mosfetPin = A0;
-int pos_good = 180;
-int pos_bad = 0;
-int pos_neutral = 90;
+int servoPin {A1};
+int pos_good {180};
+int pos_bad {0};
+int pos_neutral {90};
 
 // Sensor setup 0
 Bsec iaqSensor;
-int bme_vcc = 32;
-int bme_gnd = 14;
+int bme_vcc {32};
+int bme_gnd {14};
 
 // Variables
 String output = "";
-int good_air = 0;
-int bad_air = 0;
-int iaq_threshold = 100;
-int trigger_change = 20;
+int good_air {0};
+int bad_air {0};
+int iaq_threshold {100};
+int iaq_dif {0};
+int switch_threshold {200};
 
 void setup()
 {
@@ -37,7 +37,6 @@ void setup()
         Serial.begin(9600);
 
     // Servo Setup 1
-    pinMode(mosfetPin, OUTPUT);
     ESP32PWM::allocateTimer(0);
     servo.setPeriodHertz(50); // standard 50 hz servo
     // Servo tested min/max of 500us and 3000us for 0 to 180 sweep
@@ -98,55 +97,46 @@ void loop()
         // Check if iaq readings are ready
         if (!iaqSensor.iaqAccuracy)
         {
-            setServo(pos_neutral);
-            // output += " \t| Sensor warming up";
+            setServo(pos_neutral); 
             if (serial_enable)
                 Serial.println(output);
             return;
         }
 
-        // Check iaq compared to threshold
-        if (iaqSensor.iaq < iaq_threshold)
+        // The algorithm takes the difference between iaq threshold and current iaq value,
+        // the difference is added to good_air or bad_air. The bigger the difference from
+        // the threshold the quicker the switch happen.
+        iaq_dif = iaq_threshold - iaqSensor.iaq;
+        if (iaq_dif > 0)
         {
-            good_air++;
+            good_air += iaq_dif;
             bad_air = 0;
         }
         else
         {
             good_air = 0;
-            bad_air++;
+            bad_air -= iaq_dif;
         }
 
         // Trigger change
-        if (good_air > trigger_change)
+        if (good_air > switch_threshold)
         {
             setServo(pos_good);
         }
-        else if (bad_air > trigger_change)
+        else if (bad_air > switch_threshold)
         {
             setServo(pos_bad);
         }
 
         if (serial_enable)
             Serial.println(output);
-    }
-    else
-    {
-        // Go to low power
-        checkIaqSensorStatus();
-        delay(1000);
-        return;
-    }
+    }    
 }
 
 // Helper function definitions
 void setServo(int pos)
 {
-    digitalWrite(mosfetPin, HIGH);
-    delay(1000);
     servo.write(pos);
-    delay(1000);
-    digitalWrite(mosfetPin, LOW);
 }
 
 void checkIaqSensorStatus(void)
